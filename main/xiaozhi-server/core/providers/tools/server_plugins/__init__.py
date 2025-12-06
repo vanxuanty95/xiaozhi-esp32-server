@@ -1,4 +1,4 @@
-"""服务端插件工具模块"""
+"""Server plugin tool module"""
 
 from .plugin_executor import ServerPluginExecutor
 

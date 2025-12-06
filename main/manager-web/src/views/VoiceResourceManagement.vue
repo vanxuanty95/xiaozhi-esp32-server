@@ -89,7 +89,7 @@
             </div>
         </div>
 
-        <!-- 新增音色资源对话框 -->
+        <!-- Add voice resource dialog -->
         <voice-clone-dialog :title="$t('voiceClone.addVoiceClone')" :visible.sync="dialogVisible" :form="voiceCloneForm"
             @submit="handleSubmit" @cancel="dialogVisible = false" />
 

@@ -55,17 +55,17 @@
                         </div>
                       </div>
                     </el-form-item>
-                    <el-form-item label="上下文源：" class="context-provider-item">
+                    <el-form-item label="Context Sources:" class="context-provider-item">
                       <div style="display: flex; align-items: center; justify-content: space-between;">
                         <span style="color: #606266; font-size: 13px;">
-                          已成功添加 {{ currentContextProviders.length }} 个源。<a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/context-provider-integration.md" target="_blank" class="doc-link">如何部署上下文源</a>
+                          Successfully added {{ currentContextProviders.length }} source(s). <a href="https://github.com/xinnan-tech/xiaozhi-esp32-server/blob/main/docs/context-provider-integration.md" target="_blank" class="doc-link">How to deploy context sources</a>
                         </span>
                         <el-button
                           class="edit-function-btn"
                           size="small"
                           @click="openContextProviderDialog"
                         >
-                          编辑源
+                          Edit Sources
                         </el-button>
                       </div>
                     </el-form-item>
@@ -197,7 +197,7 @@
                             popper-class="custom-tooltip"
                           >
                             <div slot="content">
-                              <div><strong>功能名称:</strong> {{ func.name }}</div>
+                              <div><strong>Function Name:</strong> {{ func.name }}</div>
                             </div>
                             <div class="icon-dot">
                               {{ getFunctionDisplayChar(func.name) }}
@@ -347,7 +347,7 @@ export default {
       templates: [],
       loadingTemplate: false,
       voiceOptions: [],
-      voiceDetails: {}, // 保存完整的音色信息
+      voiceDetails: {}, // Save complete voice information
       showFunctionDialog: false,
       currentFunctions: [],
       currentContextProviders: [],
@@ -357,10 +357,10 @@ export default {
       isPaused: false,
       currentAudio: null,
       currentPlayingVoiceId: null,
-      // 功能状态
+      // Feature status
       featureStatus: {
-        vad: false, // 语言检测活动功能状态
-        asr: false, // 语音识别功能状态
+        vad: false, // Voice activity detection feature status
+        asr: false, // Speech recognition feature status
       },
     };
   },
@@ -466,7 +466,7 @@ export default {
           message: i18n.t("roleConfig.applyTemplateFailed"),
           showClose: true,
         });
-        console.error("应用模板失败:", error);
+        console.error("Failed to apply template:", error);
       } finally {
         this.loadingTemplate = false;
       }
@@ -507,37 +507,37 @@ export default {
               intentModelId: data.data.intentModelId,
             },
           };
-          // 后端只给了最小映射：[{ id, agentId, pluginId }, ...]
+          // Backend only provides minimal mapping: [{ id, agentId, pluginId }, ...]
           const savedMappings = data.data.functions || [];
           
-          // 加载上下文配置
+          // Load context configuration
           this.currentContextProviders = data.data.contextProviders || [];
 
-          // 先保证 allFunctions 已经加载（如果没有，则先 fetchAllFunctions）
+          // First ensure allFunctions is loaded (if not, fetchAllFunctions first)
           const ensureFuncs = this.allFunctions.length
             ? Promise.resolve()
             : this.fetchAllFunctions();
 
           ensureFuncs.then(() => {
-            // 合并：按照 pluginId（id 字段）把全量元数据信息补齐
+            // Merge: Complete full metadata information according to pluginId (id field)
             this.currentFunctions = savedMappings.map((mapping) => {
               const meta = this.allFunctions.find((f) => f.id === mapping.pluginId);
               if (!meta) {
-                // 插件定义没找到，退化处理
+                // Plugin definition not found, fallback handling
                 return { id: mapping.pluginId, name: mapping.pluginId, params: {} };
               }
               return {
                 id: mapping.pluginId,
                 name: meta.name,
-                // 后端如果还有 paramInfo 字段就用 mapping.paramInfo，否则用 meta.params 默认值
+                // If backend has paramInfo field, use mapping.paramInfo, otherwise use meta.params default value
                 params: mapping.paramInfo || { ...meta.params },
-                fieldsMeta: meta.fieldsMeta, // 保留以便对话框渲染 tooltip
+                fieldsMeta: meta.fieldsMeta, // Keep for dialog rendering tooltip
               };
             });
-            // 备份原始，以备取消时恢复
+            // Backup original for restoration on cancel
             this.originalFunctions = JSON.parse(JSON.stringify(this.currentFunctions));
 
-            // 确保意图识别选项的可见性正确
+            // Ensure intent recognition option visibility is correct
             this.updateIntentOptionsVisibility();
           });
         } else {
@@ -560,7 +560,7 @@ export default {
                 }))
               );
 
-              // 如果是意图识别选项，需要根据当前LLM类型更新可见性
+              // If it's an intent recognition option, need to update visibility based on current LLM type
               if (model.type === "Intent") {
                 this.updateIntentOptionsVisibility();
               }
@@ -582,7 +582,7 @@ export default {
               });
               this.$set(this.modelOptions, model.type, LLMdata);
             } else {
-              this.$message.error(data.msg || "获取LLM模型列表失败");
+              this.$message.error(data.msg || "Failed to get LLM model list");
             }
           });
         }
@@ -599,21 +599,21 @@ export default {
           this.voiceOptions = data.data.map((voice) => ({
             value: voice.id,
             label: voice.name,
-            // 复制音频相关字段，确保hasAudioPreview能检测到
+            // Copy audio-related fields to ensure hasAudioPreview can detect
             voiceDemo: voice.voiceDemo,
             demoUrl: voice.demoUrl,
             audioUrl: voice.audioUrl,
             voice_demo: voice.voice_demo,
             sample_voice: voice.sample_voice,
             referenceAudio: voice.referenceAudio,
-            // 新增：添加克隆音频相关字段
+            // New: Add clone audio related fields
             cloneAudioUrl: voice.cloneAudioUrl,
             hasCloneAudio: voice.hasCloneAudio || false,
-            // 保存训练状态字段，用于判断是否为克隆音频
+            // Save training status field for determining if it's clone audio
             train_status: voice.trainStatus,
           }));
-          // 保存完整的音色信息，添加调试信息
-          console.log("获取到的音色数据:", data.data);
+          // Save complete voice information, add debug information
+          console.log("Voice data retrieved:", data.data);
           this.voiceDetails = data.data.reduce((acc, voice) => {
             acc[voice.id] = voice;
             return acc;
@@ -634,7 +634,7 @@ export default {
         }
       }
 
-      // 如果没有找到有效字符，返回第一个字符
+      // If no valid character found, return first character
       return name.charAt(0);
     },
     showFunctionIcons(type) {
@@ -646,15 +646,15 @@ export default {
       }
       if (type === "Memory") {
         if (value === "Memory_nomem") {
-          // 无记忆功能的模型，默认不记录聊天记录
+          // Models without memory function, default to not recording chat history
           this.form.chatHistoryConf = 0;
         } else {
-          // 有记忆功能的模型，默认记录文本和语音
+          // Models with memory function, default to recording text and voice
           this.form.chatHistoryConf = 2;
         }
       }
       if (type === "LLM") {
-        // 当LLM类型改变时，更新意图识别选项的可见性
+        // When LLM type changes, update intent recognition option visibility
         this.updateIntentOptionsVisibility();
       }
     },
@@ -679,7 +679,7 @@ export default {
       });
     },
     openFunctionDialog() {
-      // 显示编辑对话框时，确保 allFunctions 已经加载
+      // When showing edit dialog, ensure allFunctions is loaded
       if (this.allFunctions.length === 0) {
         this.fetchAllFunctions().then(() => (this.showFunctionDialog = true));
       } else {
@@ -704,7 +704,7 @@ export default {
       this.showFunctionDialog = false;
     },
     updateIntentOptionsVisibility() {
-      // 根据当前选择的LLM类型更新意图识别选项的可见性
+      // Update intent recognition option visibility based on currently selected LLM type
       const currentLlmId = this.form.model.llmModelId;
       if (!currentLlmId || !this.modelOptions["Intent"]) return;
 
@@ -713,41 +713,41 @@ export default {
 
       this.modelOptions["Intent"].forEach((item) => {
         if (item.value === "Intent_function_call") {
-          // 如果llmType是openai或ollama，允许选择function_call
-          // 否则隐藏function_call选项
+          // If llmType is openai or ollama, allow selecting function_call
+          // Otherwise hide function_call option
           if (llmType === "openai" || llmType === "ollama") {
             item.isHidden = false;
           } else {
             item.isHidden = true;
           }
         } else {
-          // 其他意图识别选项始终可见
+          // Other intent recognition options are always visible
           item.isHidden = false;
         }
       });
 
-      // 如果当前选择的意图识别是function_call，但LLM类型不支持，则设置为可选的第一项
+      // If currently selected intent recognition is function_call but LLM type doesn't support it, set to first available option
       if (
         this.form.model.intentModelId === "Intent_function_call" &&
         llmType !== "openai" &&
         llmType !== "ollama"
       ) {
-        // 找到第一个可见的选项
+        // Find first visible option
         const firstVisibleOption = this.modelOptions["Intent"].find(
           (item) => !item.isHidden
         );
         if (firstVisibleOption) {
           this.form.model.intentModelId = firstVisibleOption.value;
         } else {
-          // 如果没有可见选项，设置为Intent_nointent
+          // If no visible options, set to Intent_nointent
           this.form.model.intentModelId = "Intent_nointent";
         }
       }
     },
-    // 检查是否有音频预览
+    // Check if there is audio preview
     hasAudioPreview(item) {
-      // 检查item中是否包含有效的音频URL字段或克隆音频字段
-      // 克隆音频通过hasCloneAudio标志或ID格式判断（非TTS开头的ID）
+      // Check if item contains valid audio URL field or clone audio field
+      // Clone audio is determined by hasCloneAudio flag or ID format (ID not starting with TTS)
       const isCloneAudio =
         item.hasCloneAudio || (item.value && !item.value.startsWith("TTS"));
 
@@ -758,10 +758,10 @@ export default {
         item.voice_demo,
         item.sample_voice,
         item.referenceAudio,
-        item.cloneAudioUrl, // 克隆音频的URL
+        item.cloneAudioUrl, // Clone audio URL
       ];
 
-      // 检查是否有任何音频字段是有效的URL
+      // Check if any audio field is a valid URL
       const hasUrlAudio = audioFields.some(
         (field) =>
           field !== undefined &&
@@ -774,26 +774,26 @@ export default {
       return hasUrlAudio || isCloneAudio;
     },
 
-    // 播放/暂停音频切换
+    // Toggle audio play/pause
     toggleAudioPlayback(voiceId) {
-      // 如果点击的是当前正在播放的音频，则切换暂停/播放状态
+      // If clicking on currently playing audio, toggle pause/play state
       if (this.playingVoice && this.currentPlayingVoiceId === voiceId) {
         if (this.isPaused) {
-          // 从暂停状态恢复播放
+          // Resume playback from paused state
           this.currentAudio.play().catch((error) => {
-            console.error("恢复播放失败:", error);
-            this.$message.warning("无法恢复播放音频");
+            console.error("Failed to resume playback:", error);
+            this.$message.warning("Unable to resume audio playback");
           });
           this.isPaused = false;
         } else {
-          // 暂停播放
+          // Pause playback
           this.currentAudio.pause();
           this.isPaused = true;
         }
         return;
       }
 
-      // 否则开始播放新的音频
+      // Otherwise start playing new audio
       this.playVoicePreview(voiceId);
     },
 

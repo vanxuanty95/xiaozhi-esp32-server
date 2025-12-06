@@ -2,14 +2,14 @@
   <el-dialog
     :visible.sync="dialogVisible"
     width="900px"
-    title="编辑源"
+    title="Edit Source"
     :close-on-click-modal="false"
     custom-class="context-provider-dialog"
     append-to-body
   >
     <div class="dialog-content">
-      <el-empty v-if="localProviders.length === 0" description="暂无上下文API">
-        <el-button type="primary" icon="el-icon-plus" @click="addProvider(0)">添加</el-button>
+      <el-empty v-if="localProviders.length === 0" description="No context API available">
+        <el-button type="primary" icon="el-icon-plus" @click="addProvider(0)">Add</el-button>
       </el-empty>
 
       <div
@@ -20,7 +20,7 @@
         <el-card class="provider-card" shadow="hover" :body-style="{ padding: '15px 20px' }">
           <!-- URL Row -->
           <div class="input-row">
-            <span class="label-text">接口地址</span>
+            <span class="label-text">API Address</span>
             <el-input
               v-model="provider.url"
               placeholder="http://api.example.com/data"
@@ -31,7 +31,7 @@
 
           <!-- Headers Section -->
           <div class="headers-section">
-            <div class="label-text" style="margin-top: 6px;">请求头</div>
+            <div class="label-text" style="margin-top: 6px;">Request Headers</div>
             <div class="headers-list">
               <div
                 v-for="(header, hIndex) in provider.headers"
@@ -73,13 +73,13 @@
               </div>
               <!-- Empty Headers State -->
               <div v-if="provider.headers.length === 0" class="header-row empty-header">
-                 <span class="no-header-text">暂无 Headers</span>
+                 <span class="no-header-text">No Headers</span>
                  <el-button
                     type="text"
                     icon="el-icon-plus"
                     size="mini"
                     @click="addHeader(pIndex, 0)"
-                  >添加 Header</el-button>
+                  >Add Header</el-button>
               </div>
             </div>
           </div>
@@ -106,8 +106,8 @@
     </div>
 
     <span slot="footer" class="dialog-footer">
-      <el-button @click="dialogVisible = false">取消</el-button>
-      <el-button type="primary" @click="handleConfirm">确定</el-button>
+      <el-button @click="dialogVisible = false">Cancel</el-button>
+      <el-button type="primary" @click="handleConfirm">Confirm</el-button>
     </span>
   </el-dialog>
 </template>
@@ -149,7 +149,7 @@ export default {
   },
   methods: {
     initLocalData() {
-      // 深拷贝并将 headers 对象转换为数组
+      // Deep copy and convert headers object to array
       this.localProviders = this.providers.map(p => {
         const headers = p.headers || {};
         return {
@@ -158,7 +158,7 @@ export default {
         };
       });
       
-      // 如果为空，添加一个默认块
+      // If empty, add a default block
       if (this.localProviders.length === 0) {
          this.localProviders.push({ url: '', headers: [{ key: '', value: '' }] });
       }
@@ -230,7 +230,7 @@ export default {
   flex: 1;
   border-radius: 12px;
   border: 1px solid #e4e7ed;
-  border-left: 4px solid #409EFF; /* 左侧强调色 */
+  border-left: 4px solid #409EFF; /* Left accent color */
   background-color: #fff;
   transition: all 0.3s ease;
   box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.05);
@@ -261,7 +261,7 @@ export default {
   text-align: right;
   font-size: 13px;
   white-space: nowrap;
-  line-height: 32px; /* 垂直居中对齐 */
+  line-height: 32px; /* Vertical center alignment */
 }
 
 .flex-1 {

@@ -13,7 +13,7 @@
         <div class="main-wrapper">
             <div class="content-panel">
                 <div class="content-area">
-                    <!-- 显示表格或空状态 -->
+                    <!-- Show table or empty state -->
                     <el-card class="params-card" shadow="never" v-if="total > 0">
                         <el-table ref="paramsTable" :data="voiceCloneList" class="transparent-table" v-loading="loading"
                             element-loading-text="Loading" element-loading-spinner="el-icon-loading"
@@ -96,7 +96,7 @@
                         </div>
                     </el-card>
 
-                    <!-- 空状态提示 -->
+                    <!-- Empty state prompt -->
                     <div v-else-if="!loading" class="empty-state-wrapper">
                         <div class="empty-state">
                             <div class="empty-icon">
@@ -117,7 +117,7 @@
             <version-footer />
         </el-footer>
 
-        <!-- 复刻弹框 -->
+        <!-- Clone dialog -->
         <VoiceCloneDialog :visible.sync="cloneDialogVisible" :voiceCloneData="currentVoiceClone"
             @success="handleCloneSuccess" />
     </div>
@@ -150,9 +150,9 @@ export default {
                 voiceIds: [],
                 userId: null
             },
-            // 音频播放相关
-            currentAudio: null, // 当前正在播放的音频对象
-            playingRowId: null  // 当前正在播放的行 ID
+            // Audio playback related
+            currentAudio: null, // Currently playing audio object
+            playingRowId: null  // Currently playing row ID
         };
     },
     created() {
@@ -182,26 +182,26 @@ export default {
     methods: {
         getTooltipContent(row) {
             if (!row.hasVoice) {
-                return '待上传';
+                return this.$t('voiceClone.pendingUpload');
             }
             switch (row.trainStatus) {
                 case 0:
-                    return '待复刻';
+                    return this.$t('voiceClone.pendingClone');
                 case 2:
-                    return '训练成功';
+                    return this.$t('voiceClone.trainingSuccess');
                 case 3:
-                    // 训练失败时，根据错误信息智能展示
+                    // When training fails, intelligently display based on error information
                     if (row.trainError) {
-                        return `训练失败：${row.trainError}`;
+                        return `${this.$t('voiceClone.trainingFailed')}: ${row.trainError}`;
                     }
-                    return '训练失败';
+                    return this.$t('voiceClone.trainingFailed');
                 default:
                     return '';
             }
         },
         handleViewDetails(row) {
-            console.log('查看详情:', row);
-            // 可以在这里添加查看详情的逻辑
+            console.log('View details:', row);
+            // Can add view details logic here
         },
         handlePageSizeChange(val) {
             this.pageSize = val;
@@ -273,7 +273,7 @@ export default {
                     return '';
             }
         },
-        // 获取状态按钮样式
+        // Get status button style
         getStatusButtonClass(row) {
             if (!row.hasVoice || row.trainStatus === 0) {
                 return 'status-waiting';
@@ -284,9 +284,9 @@ export default {
             }
             return '';
         },
-        // 处理复刻操作
+        // Handle clone operation
         handleClone(row) {
-            // 防止重复提交
+            // Prevent duplicate submission
             if (row._cloning) {
                 return;
             }
@@ -301,72 +301,72 @@ export default {
                         res = res.data;
                         if (res.code === 0) {
                             this.$message.success(this.$t('message.success'));
-                            // 复刻成功后刷新列表
+                            // Refresh list after successful clone
                             this.fetchVoiceCloneList();
                         } else {
-                            // 复刻失败时刷新列表以获取完整的错误信息
-                            console.log('API返回错误，刷新列表获取详细错误信息');
+                            // Refresh list when clone fails to get complete error information
+                            console.log('API returned error, refreshing list to get detailed error information');
                             this.$message.error(res.msg || this.$t('message.error'));
-                            // 刷新列表以获取后端保存的完整错误详情
+                            // Refresh list to get complete error details saved by backend
                             this.fetchVoiceCloneList();
                         }
                     } catch (error) {
-                        // 处理响应时出错，刷新列表
-                        console.error('处理响应时出错:', error);
-                        this.$message.error('处理响应时出错');
+                        // Error processing response, refresh list
+                        console.error('Error processing response:', error);
+                        this.$message.error(this.$t('message.error'));
                         this.fetchVoiceCloneList();
                     } finally {
                         this.$set(row, '_cloning', false);
                     }
                 }, (error) => {
-                    // API调用失败，刷新列表以获取最新状态
-                    console.error('API调用失败:', error);
-                    this.$message.error('克隆失败，请将鼠标悬停在错误提示上，查看错误详情');
+                    // API call failed, refresh list to get latest status
+                    console.error('API call failed:', error);
+                    this.$message.error(this.$t('voiceClone.cloneFailed'));
                     this.fetchVoiceCloneList();
                     this.$set(row, '_cloning', false);
                 });
             } catch (error) {
-                // 调用API时出错，刷新列表
-                console.error('调用API时出错:', error);
-                this.$message.error('调用API时出错');
+                // Error calling API, refresh list
+                console.error('Error calling API:', error);
+                this.$message.error(this.$t('message.error'));
                 this.fetchVoiceCloneList();
                 this.$set(row, '_cloning', false);
             }
         },
 
-        // 更新行状态并触发视图更新
+        // Update row status and trigger view update
         updateRowStatus(row, status, statusCode = null) {
-            // 在Vue中直接修改数组中的对象属性可能不会触发视图更新
+            // Directly modifying object properties in array in Vue may not trigger view update
             const index = this.voiceCloneList.findIndex(item => item.id === row.id);
             const updateData = {
                 trainStatus: status
             };
 
-            // 如果提供了状态码，也更新状态码信息
+            // If status code is provided, also update status code information
             if (statusCode !== null) {
                 updateData.statusCode = statusCode;
             }
 
             if (index !== -1) {
-                // 使用Vue.set来确保响应式更新
+                // Use Vue.set to ensure reactive update
                 this.$set(this.voiceCloneList, index, {
                     ...this.voiceCloneList[index],
                     ...updateData
                 });
-                // 强制表格重新渲染
+                // Force table to re-render
                 if (this.$refs.paramsTable) {
                     this.$refs.paramsTable.doLayout();
                 }
             } else {
-                // 如果找不到索引，直接更新row对象
+                // If index not found, directly update row object
                 row.trainStatus = status;
                 if (statusCode !== null) {
                     row.statusCode = statusCode;
                 }
-                // 强制整个表格重新渲染
+                // Force entire table to re-render
                 this.$forceUpdate();
             }
-            console.log('更新行状态:', row.id, '状态:', status, '状态码:', statusCode);
+            console.log('Updated row status:', row.id, 'Status:', status, 'Status code:', statusCode);
         },
         // 复刻成功后的回调
         handleCloneSuccess() {

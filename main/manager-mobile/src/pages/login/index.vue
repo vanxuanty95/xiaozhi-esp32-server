@@ -15,18 +15,18 @@ import { login } from '@/api/auth';
 import { useConfigStore } from '@/store';
 import { getEnvBaseUrl } from '@/utils';
 import { toast } from '@/utils/toast';
-// 导入国际化相关功能
+// Import internationalization related functionality
 import { t, changeLanguage, getSupportedLanguages, initI18n } from '@/i18n';
 import type { Language } from '@/store/lang';
-// 导入SM2加密工具
+// Import SM2 encryption tool
 import { sm2Encrypt } from '@/utils'
 
-// 获取屏幕边界到安全区域距离
+// Get screen boundary to safe area distance
 let safeAreaInsets
 let systemInfo
 
 // #ifdef MP-WEIXIN
-// 微信小程序使用新的API
+// WeChat mini program uses new API
 systemInfo = uni.getWindowInfo()
 safeAreaInsets = systemInfo.safeArea
   ? {
@@ -39,11 +39,11 @@ safeAreaInsets = systemInfo.safeArea
 // #endif
 
 // #ifndef MP-WEIXIN
-// 其他平台继续使用uni API
+// Other platforms continue to use uni API
 systemInfo = uni.getSystemInfoSync()
 safeAreaInsets = systemInfo.safeAreaInsets
 // #endif
-// 表单数据
+// Form data
 const formData = ref({
   username: '',
   password: '',
@@ -53,50 +53,50 @@ const formData = ref({
   mobile: '',
 })
 
-// 验证码图片
+// Captcha image
 const captchaImage = ref('')
 const loading = ref(false)
 
-// 登录方式：'username' | 'mobile'
+// Login type: 'username' | 'mobile'
 const loginType = ref<'username' | 'mobile'>('username')
 
-// 获取配置store
+// Get config store
 const configStore = useConfigStore()
 
-// 区号选择相关
+// Area code selection related
 const showAreaCodeSheet = ref(false)
 const selectedAreaCode = ref('+86')
-const selectedAreaName = ref('中国大陆')
+const selectedAreaName = ref('Mainland China')
 
-// 计算属性：是否启用手机号登录
+// Computed property: whether mobile login is enabled
 const enableMobileLogin = computed(() => {
   return configStore.config.enableMobileRegister
 })
 
-// 计算属性：区号列表
+// Computed property: area code list
 const areaCodeList = computed(() => {
-  return configStore.config.mobileAreaList || [{ name: '中国大陆', key: '+86' }]
+  return configStore.config.mobileAreaList || [{ name: 'Mainland China', key: '+86' }]
 })
 
-// SM2公钥
+// SM2 public key
 const sm2PublicKey = computed(() => {
   return configStore.config.sm2PublicKey
 })
 
-// 切换登录方式
+// Toggle login type
 function toggleLoginType() {
   loginType.value = loginType.value === 'username' ? 'mobile' : 'username'
-  // 清空输入框
+  // Clear input fields
   formData.value.username = ''
   formData.value.mobile = ''
 }
 
-// 打开区号选择弹窗
+// Open area code selection sheet
 function openAreaCodeSheet() {
   showAreaCodeSheet.value = true
 }
 
-// 选择区号
+// Select area code
 function selectAreaCode(item: { name: string, key: string }) {
   selectedAreaCode.value = item.key
   selectedAreaName.value = item.name
@@ -104,26 +104,26 @@ function selectAreaCode(item: { name: string, key: string }) {
   showAreaCodeSheet.value = false
 }
 
-// 关闭区号选择弹窗
+// Close area code selection sheet
 function closeAreaCodeSheet() {
   showAreaCodeSheet.value = false
 }
 
-// 跳转到注册页面
+// Navigate to register page
 function goToRegister() {
   uni.navigateTo({
     url: '/pages/register/index',
   })
 }
 
-// 跳转到忘记密码页面
+// Navigate to forgot password page
 function goToForgotPassword() {
   uni.navigateTo({
     url: '/pages/forgot-password/index',
   })
 }
 
-// 生成UUID
+// Generate UUID
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = Math.random() * 16 | 0
@@ -132,25 +132,25 @@ function generateUUID() {
   })
 }
 
-let skipReLaunch = false // 全局或组件作用域
+let skipReLaunch = false // Global or component scope
 
-//跳转至服务端设置页面
+// Navigate to server settings page
 function goToServerSetting() {
   uni.switchTab({
     url: '/pages/settings/index',
   })
 }
 
-// 获取验证码
+// Get captcha
 async function refreshCaptcha() {
   const uuid = generateUUID();
   formData.value.captchaId = uuid;
   captchaImage.value = `${getEnvBaseUrl()}/user/captcha?uuid=${uuid}&t=${Date.now()}`;
 }
 
-// 登录
+// Login
 async function handleLogin() {
-  // 表单验证
+  // Form validation
   if (loginType.value === 'username') {
     if (!formData.value.username) {
       toast.warning(t('login.enterUsername'))
@@ -162,7 +162,7 @@ async function handleLogin() {
       toast.warning(t('login.enterPhone'))
       return
     }
-    // 手机号格式验证
+    // Mobile number format validation
     const phoneRegex = /^1[3-9]\d{9}$/
     if (!phoneRegex.test(formData.value.mobile)) {
       toast.warning(t('login.enterPhone'))
@@ -178,7 +178,7 @@ async function handleLogin() {
     return
   }
 
-  // 检查SM2公钥是否配置
+  // Check if SM2 public key is configured
   if (!sm2PublicKey.value) {
     toast.warning(t('sm2.publicKeyNotConfigured'))
     return
@@ -187,14 +187,14 @@ async function handleLogin() {
   try {
     loading.value = true
 
-    // 加密密码
+    // Encrypt password
     let encryptedPassword
     try {
-      // 拼接验证码和密码
+      // Concatenate captcha and password
       const captchaAndPassword = formData.value.captcha + formData.value.password
       encryptedPassword = sm2Encrypt(sm2PublicKey.value, captchaAndPassword)
     } catch (error) {
-      console.error('密码加密失败:', error)
+      console.error('Password encryption failed:', error)
       toast.warning(t('sm2.encryptionFailed'))
       return
     }

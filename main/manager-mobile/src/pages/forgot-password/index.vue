@@ -166,33 +166,33 @@ async function handleSendSmsCode() {
       }
     }, 1000);
   } catch (error: any) {
-    // 处理验证码错误
-    if (error.message.includes("请求错误[10067]")) {
+    // Handle captcha error
+    if (error.message.includes("Request error[10067]")) {
       toast.warning(t("login.captchaError"));
     }
-    // 发送失败重新获取图形验证码
+    // If send fails, refresh image captcha
     refreshCaptcha();
   } finally {
     smsLoading.value = false;
   }
 }
 
-// 重置密码
+// Reset password
 async function handleResetPassword() {
-  // 表单验证
+  // Form validation
   if (!formData.value.mobile) {
     toast.warning(t("retrievePassword.mobileRequired"));
     return;
   }
 
-  // 手机号格式验证
+  // Mobile number format validation
   const phoneRegex = /^1[3-9]\d{9}$/;
   if (!phoneRegex.test(formData.value.mobile)) {
     toast.warning(t("retrievePassword.inputCorrectMobile"));
     return;
   }
 
-  // 将手机号转换为国际格式
+  // Convert mobile number to international format
   const internationalPhone = formData.value.areaCode + formData.value.mobile;
 
   if (!formData.value.captcha) {
@@ -223,25 +223,25 @@ async function handleResetPassword() {
   try {
     loading.value = true;
 
-    // 检查SM2公钥是否配置
+    // Check if SM2 public key is configured
     if (!sm2PublicKey.value) {
       toast.warning(t("sm2.publicKeyNotConfigured"));
       return;
     }
 
-    // 加密密码
+    // Encrypt password
     let encryptedPassword;
     try {
-      // 拼接图形验证码和新密码进行加密
+      // Concatenate image captcha and new password for encryption
       const captchaAndPassword = formData.value.captcha + formData.value.newPassword;
       encryptedPassword = sm2Encrypt(sm2PublicKey.value, captchaAndPassword);
     } catch (error) {
-      console.error("密码加密失败:", error);
+      console.error("Password encryption failed:", error);
       toast.warning(t("sm2.encryptionFailed"));
       return;
     }
 
-    // 调用重置密码API
+    // Call reset password API
     await retrievePassword({
       phone: internationalPhone,
       code: formData.value.mobileCaptcha,
@@ -251,46 +251,46 @@ async function handleResetPassword() {
 
     toast.success(t("retrievePassword.passwordUpdateSuccess"));
 
-    // 跳转到登录页
+    // Navigate to login page
     setTimeout(() => {
       uni.redirectTo({
         url: "/pages/login/index",
       });
     }, 1000);
   } catch (error: any) {
-    // 处理验证码错误
-    if (error.message.includes("请求错误[10067]")) {
+    // Handle captcha error
+    if (error.message.includes("Request error[10067]")) {
       toast.warning(t("login.captchaError"));
     }
-    // 重置失败重新获取验证码
+    // If reset fails, refresh captcha
     refreshCaptcha();
   } finally {
     loading.value = false;
   }
 }
 
-// 返回登录
+// Return to login
 function goBack() {
   uni.redirectTo({
     url: "/pages/login/index",
   });
 }
 
-// 页面加载时获取验证码
+// Get captcha when page loads
 onLoad(() => {
   refreshCaptcha();
 });
 
-// 组件挂载时确保配置已加载
+// Ensure config is loaded when component mounts
 onMounted(async () => {
   if (!configStore.config.name) {
     try {
       await configStore.fetchPublicConfig();
     } catch (error) {
-      console.error("获取配置失败:", error);
+      console.error("Failed to get config:", error);
     }
   }
-  // 初始化国际化
+  // Initialize internationalization
   initI18n();
 });
 </script>

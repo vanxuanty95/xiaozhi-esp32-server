@@ -19,7 +19,7 @@
       </div>
     </div>
 
-    <!-- 主体内容 -->
+    <!-- Main content -->
     <div class="main-wrapper">
       <div class="content-panel">
         <div class="content-area">
@@ -36,8 +36,8 @@
               :header-cell-style="{ padding: '10px 20px' }"
               :cell-style="{ padding: '10px 20px' }"
             >
-              <!-- 移除@row-click="handleRowClick" -->
-              <!-- 自定义选择列，实现表头是"选择"文字，数据行是小方框 -->
+              <!-- Removed @row-click="handleRowClick" -->
+              <!-- Custom selection column, header shows "Select" text, data rows show checkbox -->
               <el-table-column
                 :label="$t('agentTemplateManagement.select')"
                 align="center"
@@ -51,7 +51,7 @@
                   ></el-checkbox>
                 </template>
               </el-table-column>
-              <!-- 模板名称 -->
+              <!-- Template name -->
               <el-table-column
                 :label="$t('agentTemplateManagement.templateName')"
                 prop="agentName"
@@ -62,7 +62,7 @@
                   <span>{{ scope.row.agentName }}</span>
                 </template>
               </el-table-column>
-              <!-- 修改为序号列，并移动到此处 -->
+              <!-- Changed to serial number column, moved here -->
               <el-table-column
                 :label="$t('agentTemplateManagement.serialNumber')"
                 min-width="120"
@@ -72,7 +72,7 @@
                   <span>{{ (currentPage - 1) * pageSize + scope.$index + 1 }}</span>
                 </template>
               </el-table-column>
-              <!-- 操作列 -->
+              <!-- Action column -->
               <el-table-column
                 :label="$t('agentTemplateManagement.action')"
                 min-width="250"
@@ -91,7 +91,7 @@
               </el-table-column>
             </el-table>
 
-            <!-- 表格底部操作栏 -->
+            <!-- Table bottom action bar -->
             <div class="table_bottom">
               <div class="ctrl_btn">
                 <el-button
@@ -119,7 +119,7 @@
                 </el-button>
               </div>
 
-              <!-- 分页 -->
+              <!-- Pagination -->
               <div class="custom-pagination">
                 <el-pagination
                   v-model:current-page="currentPage"
@@ -151,14 +151,14 @@ export default {
 
   data() {
     return {
-      // 模板相关
+      // Template related
       templateList: [],
       templateLoading: false,
       selectedTemplates: [],
-      isAllSelected: false, // 添加全选状态
+      isAllSelected: false, // Add select all state
 
       search: "",
-      // 分页相关数据
+      // Pagination related data
       pageSizeOptions: [10, 20, 50, 100],
       currentPage: 1,
       pageSize: 10,
@@ -168,7 +168,7 @@ export default {
   created() {
     this.loadTemplateList();
   },
-  // 在computed部分添加hasSelected属性
+  // Add hasSelected property in computed section
   computed: {
     pageCount() {
       return Math.ceil(this.total / this.pageSize);
@@ -181,8 +181,8 @@ export default {
     },
   },
   methods: {
-    // 加载模板列表
-    // 改进loadTemplateList方法的错误处理逻辑
+    // Load template list
+    // Improve error handling logic for loadTemplateList method
     loadTemplateList() {
       this.templateLoading = true;
       const params = {
@@ -197,11 +197,11 @@ export default {
         agentApi.getAgentTemplatesPage(
           params,
           (res) => {
-            // 更健壮的响应处理逻辑
+            // More robust response handling logic
             if (res && typeof res === "object") {
               if (res.data && res.data.code === 0) {
                 const responseData = res.data.data || {};
-                // 为每个模板添加selected属性
+                // Add selected property to each template
                 this.templateList = Array.isArray(responseData.list)
                   ? responseData.list.map((item) => ({ ...item, selected: false }))
                   : [];
@@ -238,7 +238,7 @@ export default {
       }
     },
 
-    // 搜索模板
+    // Search templates
     handleSearch() {
       if (this.search) {
         const searchValue = this.search.toLowerCase();
@@ -252,25 +252,25 @@ export default {
       }
     },
 
-    // 修改showAddTemplateDialog方法，使其跳转到与编辑页面相同的页面
-    // 显示新增模板弹窗
+    // Modify showAddTemplateDialog method to navigate to the same page as edit page
+    // Show add template dialog
     showAddTemplateDialog() {
-      // 跳转到模板快速配置页面，不传递templateId参数表示新增
+      // Navigate to template quick config page, not passing templateId parameter means add
       this.$router.push({
         path: "/template-quick-config",
       });
     },
 
-    // 编辑模板
+    // Edit template
     editTemplate(row) {
-      // 跳转到模板快速配置页面，并传递模板ID参数
+      // Navigate to template quick config page, and pass template ID parameter
       this.$router.push({
         path: "/template-quick-config",
         query: { templateId: row.id },
       });
     },
 
-    // 删除模板
+    // Delete template
     deleteTemplate(row) {
       this.$confirm(
         this.$t("agentTemplateManagement.confirmSingleDelete"),
@@ -284,7 +284,7 @@ export default {
         .then(() => {
           agentApi.deleteAgentTemplate(row.id, (res) => {
             if (res && typeof res === "object") {
-              // 检查res.data是否存在且包含code=0
+              // Check if res.data exists and contains code=0
               if (res.data && res.data.code === 0) {
                 this.$message.success(this.$t("agentTemplateManagement.deleteSuccess"));
                 this.loadTemplateList();
@@ -303,7 +303,7 @@ export default {
         });
     },
 
-    // 批量删除模板
+    // Batch delete templates
     batchDeleteTemplate() {
       if (this.selectedTemplates.length === 0) {
         this.$message.warning(this.$t("agentTemplateManagement.selectTemplate"));
@@ -322,7 +322,7 @@ export default {
         }
       )
         .then(() => {
-          // 确保参数格式正确 - 将id数组作为请求体
+          // Ensure parameter format is correct - use id array as request body
           const ids = this.selectedTemplates.map((template) => template.id);
 
           agentApi.batchDeleteAgentTemplate(ids, (res) => {
@@ -331,9 +331,9 @@ export default {
                 this.$message.success(
                   this.$t("agentTemplateManagement.batchDeleteSuccess")
                 );
-                // 重新加载模板列表
+                // Reload template list
                 this.loadTemplateList();
-                // 清空选中状态
+                // Clear selected state
                 this.selectedTemplates = [];
                 this.isAllSelected = false;
               } else {
@@ -351,7 +351,7 @@ export default {
         });
     },
 
-    // 完善分页相关方法
+    // Complete pagination related methods
     handlePageChange(page) {
       this.currentPage = page;
       this.loadTemplateList();

@@ -110,7 +110,7 @@
       </div>
     </div>
 
-    <!-- 上传文档对话框 -->
+    <!-- Upload document dialog -->
     <el-dialog :title="$t('knowledgeFileUpload.uploadDocument')" :visible.sync="uploadDialogVisible" width="800px">
       <el-upload class="document-uploader" drag :action="uploadUrl" :auto-upload="false" :on-change="handleFileChange"
         :multiple="true" :show-file-list="false" accept=".doc,.docx,.pdf,.txt,.md,.mdx,.csv,.xls,.xlsx,.ppt,.pptx">
@@ -119,7 +119,7 @@
         <div class="el-upload__tip">{{ $t('knowledgeFileUpload.uploadTip') }}</div>
       </el-upload>
 
-      <!-- 已选择文件列表 -->
+      <!-- Selected files list -->
       <div class="selected-files-section" v-if="selectedFilesList.length > 0">
         <h4>{{ $t('knowledgeFileUpload.selectedFiles') }} ({{ selectedFilesList.length }})</h4>
         <div class="selected-files-list">
@@ -146,13 +146,13 @@
       </div>
     </el-dialog>
 
-    <!-- 切片管理弹窗 -->
+    <!-- Slice management dialog -->
     <el-dialog :title="`${$t('knowledgeFileUpload.viewSlices')} - ${currentDocumentName}`"
       :visible.sync="sliceDialogVisible" width="1200px" class="slice-dialog">
       <div class="slice-management">
-        <!-- 切片列表 -->
+        <!-- Slice list -->
         <div class="slice-list-section">
-          <!-- 切片内容卡片式布局 -->
+          <!-- Slice content card layout -->
           <div v-loading="sliceLoading" class="slice-content-container">
             <div v-if="sliceList.length > 0" class="slice-cards-container">
               <div v-for="(slice, index) in sliceList" :key="index" class="slice-card">
@@ -170,10 +170,10 @@
             </div>
           </div>
 
-          <!-- 切片分页 -->
+          <!-- Slice pagination -->
           <div class="slice-pagination" style="margin-top: 20px; text-align: right;">
             <div class="custom-pagination">
-              <!-- 条/页选择器 -->
+              <!-- Items per page selector -->
               <el-select v-model="slicePageSize" @change="handleSliceSizeChange" class="page-size-select"
                 :popper-append-to-body="false">
                 <el-option v-for="item in pageSizeOptions" :key="item"
@@ -181,28 +181,28 @@
                 </el-option>
               </el-select>
 
-              <!-- 首页按钮 -->
+              <!-- First page button -->
               <button class="pagination-btn" :disabled="sliceCurrentPage === 1" @click="goToSliceFirstPage">
                 {{ $t('knowledgeFileUpload.firstPage') }}
               </button>
 
-              <!-- 上一页按钮 -->
+              <!-- Previous page button -->
               <button class="pagination-btn" :disabled="sliceCurrentPage === 1" @click="goToSlicePrevPage">
                 {{ $t('knowledgeFileUpload.prevPage') }}
               </button>
 
-              <!-- 页码按钮 -->
+              <!-- Page number buttons -->
               <button v-for="page in sliceVisiblePages" :key="page" class="pagination-btn"
                 :class="{ active: page === sliceCurrentPage }" @click="goToSlicePage(page)">
                 {{ page }}
               </button>
 
-              <!-- 下一页按钮 -->
+              <!-- Next page button -->
               <button class="pagination-btn" :disabled="sliceCurrentPage === slicePageCount" @click="goToSliceNextPage">
                 {{ $t('knowledgeFileUpload.nextPage') }}
               </button>
 
-              <!-- 总记录数 -->
+              <!-- Total records -->
               <span class="total-text">{{ $t('knowledgeFileUpload.totalRecords', { total: sliceTotal }) }}</span>
             </div>
           </div>
@@ -210,7 +210,7 @@
       </div>
     </el-dialog>
 
-    <!-- 召回测试弹窗 -->
+    <!-- Retrieval test dialog -->
     <el-dialog :title="$t('knowledgeFileUpload.retrievalTest')" :visible.sync="retrievalTestDialogVisible"
       width="1200px" class="retrieval-test-dialog">
       <div class="retrieval-test-form">
@@ -288,9 +288,9 @@ export default {
       },
       uploadUrl: '',
       isAllSelected: false,
-      selectedFilesList: [], // 批量上传选择的文件列表
+      selectedFilesList: [], // Files selected for batch upload
 
-      // 切片管理相关数据
+      // Slice management related data
       sliceDialogVisible: false,
       currentDocumentId: '',
       currentDocumentName: '',
@@ -300,7 +300,7 @@ export default {
       slicePageSize: 10,
       sliceTotal: 0,
 
-      // 召回测试相关数据
+      // Retrieval test related data
       retrievalTestDialogVisible: false,
       retrievalTestForm: {
         question: ''
@@ -308,10 +308,10 @@ export default {
       retrievalTestResult: null,
       retrievalTestLoading: false,
       
-      // 状态轮询相关数据
+      // Status polling related data
       statusPollingTimer: null,
-      statusPollingInterval: 5000, // 5秒轮询一次
-      maxStatusPollingTime: 300000, // 最大轮询时间5分钟
+      statusPollingInterval: 5000, // Poll every 5 seconds
+      maxStatusPollingTime: 300000, // Maximum polling time 5 minutes
       statusPollingStartTime: null
     };
   },
@@ -344,11 +344,11 @@ export default {
       }
       return pages;
     },
-    // 切片分页页数计算
+    // Slice pagination page count calculation
     slicePageCount() {
       return Math.ceil(this.sliceTotal / this.slicePageSize);
     },
-    // 切片分页可见页码计算（最多显示3个页码）
+    // Slice pagination visible page numbers calculation (max 3 pages displayed)
     sliceVisiblePages() {
       const pages = [];
       const maxVisible = 3;
@@ -499,19 +499,19 @@ export default {
       }
     },
     
-    // 更新文档状态
+    // Update document statuses
     updateDocumentStatuses: function (updatedFileList) {
       let hasChanges = false;
       
       updatedFileList.forEach(updatedDoc => {
         const existingDoc = this.fileList.find(doc => doc.id === updatedDoc.id);
         if (existingDoc && existingDoc.parseStatusCode !== updatedDoc.parseStatusCode) {
-          // 状态发生变化，更新文档
+          // Status changed, update document
           Object.assign(existingDoc, updatedDoc);
           hasChanges = true;
-          console.log(`文档 ${existingDoc.name} 状态已更新: ${existingDoc.parseStatusCode} -> ${updatedDoc.parseStatusCode}`);
+          console.log(`Document ${existingDoc.name} status updated: ${existingDoc.parseStatusCode} -> ${updatedDoc.parseStatusCode}`);
           
-          // 如果状态变为完成，启动切片数量检测
+          // If status changed to completed, start slice count detection
           if (updatedDoc.parseStatusCode === 3) {
             this.fetchSliceCountForSingleDocument(updatedDoc.id);
           }
@@ -523,59 +523,59 @@ export default {
       }
     },
 
-    // 为文档列表中的每个文档获取切片数量
+    // Get slice count for each document in document list
     fetchSliceCountsForDocuments: async function () {
       if (!this.fileList || this.fileList.length === 0) {
         return;
       }
 
-      // 为每个文档获取切片数量
+      // Get slice count for each document
       for (const document of this.fileList) {
         this.fetchSliceCountForSingleDocument(document.id);
       }
     },
 
-    // 获取单个文档的切片数量
+    // Get slice count for single document
     fetchSliceCountForSingleDocument: function (documentId) {
       const document = this.fileList.find(doc => doc.id === documentId);
       if (!document) {
-        console.warn('未找到文档:', documentId);
+        console.warn('Document not found:', documentId);
         return;
       }
 
       const params = {
         page: 1,
-        page_size: 1  // 只需要获取总数，所以每页1条记录即可
+        page_size: 1  // Only need total count, so 1 record per page is enough
       };
 
       KnowledgeBaseAPI.listChunks(this.datasetId, documentId, params,
         ({ data }) => {
           if (data && data.code === 0) {
             const sliceCount = data.data.total || 0;
-            // 更新文档的切片数量
+            // Update document's slice count
             this.$set(document, 'sliceCount', sliceCount);
-            // 强制更新视图
+            // Force view update
             this.$forceUpdate();
-            console.log(`文档 ${document.name} 切片数量已更新为:`, sliceCount);
+            console.log(`Document ${document.name} slice count updated to:`, sliceCount);
           } else {
-            console.warn(`获取文档 ${document.name} 切片数量失败:`, data?.msg);
+            console.warn(`Failed to get slice count for document ${document.name}:`, data?.msg);
           }
         },
         (err) => {
-          console.warn(`获取文档 ${document.name} 切片数量失败:`, err);
+          console.warn(`Failed to get slice count for document ${document.name}:`, err);
         }
       );
     },
 
-    // 智能检测切片生成状态并自动刷新
+    // Intelligently detect slice generation status and auto-refresh
     smartRefreshSliceCount: function (documentId) {
       const document = this.fileList.find(doc => doc.id === documentId);
       if (!document) {
-        console.warn('未找到文档:', documentId);
+        console.warn('Document not found:', documentId);
         return;
       }
 
-      // 延迟2秒后获取切片数量，给后端更多处理时间
+      // Get slice count after 2 second delay to give backend more processing time
       setTimeout(() => {
         this.fetchSliceCountForSingleDocument(documentId);
       }, 2000);
@@ -595,7 +595,7 @@ export default {
         name: '',
         file: null
       };
-      this.selectedFilesList = []; // 清空已选择文件列表
+      this.selectedFilesList = []; // Clear selected files list
       this.uploadDialogVisible = true;
     },
     handleFileChange: function (file, fileList) {

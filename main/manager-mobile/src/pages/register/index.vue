@@ -3,7 +3,7 @@
   "layout": "default",
   "style": {
     "navigationStyle": "custom",
-    "navigationBarTitleText": "注册"
+    "navigationBarTitleText": "Register"
   }
 }
 </route>
@@ -77,41 +77,41 @@ const registerType = ref<'username' | 'mobile'>('username')
 // 获取配置store
 const configStore = useConfigStore()
 
-// 区号选择相关
+// Area code selection related
 const showAreaCodeSheet = ref(false)
 const selectedAreaCode = ref('+86')
-const selectedAreaName = ref('中国大陆')
+const selectedAreaName = ref('Mainland China')
 
-// 计算属性：是否启用手机号注册
+// Computed property: whether mobile registration is enabled
 const enableMobileRegister = computed(() => {
   return configStore.config.enableMobileRegister
 })
 
-// 计算属性：区号列表
+// Computed property: area code list
 const areaCodeList = computed(() => {
-  return configStore.config.mobileAreaList || [{ name: '中国大陆', key: '+86' }]
+  return configStore.config.mobileAreaList || [{ name: 'Mainland China', key: '+86' }]
 })
 
-// SM2公钥
+// SM2 public key
 const sm2PublicKey = computed(() => {
   return configStore.config.sm2PublicKey
 })
 
-// 切换注册方式
+// Toggle register type
 function toggleRegisterType() {
   registerType.value = registerType.value === 'username' ? 'mobile' : 'username'
-  // 清空输入框
+  // Clear input fields
   formData.value.username = ''
   formData.value.mobile = ''
   formData.value.mobileCaptcha = ''
 }
 
-// 打开区号选择弹窗
+// Open area code selection sheet
 function openAreaCodeSheet() {
   showAreaCodeSheet.value = true
 }
 
-// 选择区号
+// Select area code
 function selectAreaCode(item: { name: string, key: string }) {
   selectedAreaCode.value = item.key
   selectedAreaName.value = item.name
@@ -119,12 +119,12 @@ function selectAreaCode(item: { name: string, key: string }) {
   showAreaCodeSheet.value = false
 }
 
-// 关闭区号选择弹窗
+// Close area code selection sheet
 function closeAreaCodeSheet() {
   showAreaCodeSheet.value = false
 }
 
-// 生成UUID
+// Generate UUID
 function generateUUID() {
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
     const r = (Math.random() * 16) | 0
@@ -133,14 +133,14 @@ function generateUUID() {
   })
 }
 
-// 获取验证码
+// Get captcha
 async function refreshCaptcha() {
   const uuid = generateUUID();
   formData.value.captchaId = uuid;
   captchaImage.value = `${getEnvBaseUrl()}/user/captcha?uuid=${uuid}&t=${Date.now()}`;
 }
 
-// 发送短信验证码
+// Send SMS verification code
 async function sendSmsVerification() {
   if (!formData.value.mobile) {
     toast.warning(t('register.enterPhone'))
@@ -151,7 +151,7 @@ async function sendSmsVerification() {
     return
   }
 
-  // 手机号格式验证
+  // Mobile number format validation
   const phoneRegex = /^1[3-9]\d{9}$/
   if (!phoneRegex.test(formData.value.mobile)) {
     toast.warning(t('register.enterPhone'))
@@ -168,7 +168,7 @@ async function sendSmsVerification() {
 
     toast.success(t('register.captchaSendSuccess'))
 
-    // 开始倒计时
+    // Start countdown
     smsCountdown.value = 60
     const timer = setInterval(() => {
       smsCountdown.value--
@@ -178,11 +178,11 @@ async function sendSmsVerification() {
     }, 1000)
   }
   catch (error: any) {
-    // 处理验证码错误 - 从error.message中解析错误码
-    if (error.message.includes('请求错误[10067]')) {
+    // Handle captcha error - parse error code from error.message
+    if (error.message.includes('Request error[10067]')) {
       toast.warning(t('login.captchaError'))
     }
-    // 发送失败重新获取图形验证码
+    // If send fails, refresh image captcha
     refreshCaptcha()
   }
   finally {
@@ -190,16 +190,16 @@ async function sendSmsVerification() {
   }
 }
 
-// 注册
+// Register
 async function handleRegister() {
-  // 表单验证
+  // Form validation
   if (enableMobileRegister.value) {
-    // 手机号注册验证
+    // Mobile registration validation
     if (!formData.value.mobile) {
       toast.warning(t('register.enterPhone'))
       return
     }
-    // 手机号格式验证
+    // Mobile number format validation
     const phoneRegex = /^1[3-9]\d{9}$/
     if (!phoneRegex.test(formData.value.mobile)) {
       toast.warning(t('register.enterPhone'))
@@ -211,7 +211,7 @@ async function handleRegister() {
     }
   }
   else {
-    // 用户名注册验证
+    // Username registration validation
     if (!formData.value.username) {
       toast.warning(t('register.enterUsername'))
       return
@@ -238,7 +238,7 @@ async function handleRegister() {
     return
   }
 
-  // 检查SM2公钥是否配置
+  // Check if SM2 public key is configured
   if (!sm2PublicKey.value) {
     toast.warning(t('sm2.publicKeyNotConfigured'))
     return
@@ -247,19 +247,19 @@ async function handleRegister() {
   try {
     loading.value = true
 
-    // 加密密码
+    // Encrypt password
     let encryptedPassword
     try {
-      // 拼接验证码和密码
+      // Concatenate captcha and password
       const captchaAndPassword = formData.value.captcha + formData.value.password
       encryptedPassword = sm2Encrypt(sm2PublicKey.value, captchaAndPassword)
     } catch (error) {
-      console.error('密码加密失败:', error)
+      console.error('Password encryption failed:', error)
       toast.warning(t('sm2.encryptionFailed'))
       return
     }
 
-    // 构建注册数据
+    // Build register data
     const registerData = {
       username: enableMobileRegister.value ? `${selectedAreaCode.value}${formData.value.mobile}` : formData.value.username,
       password: encryptedPassword,
@@ -272,7 +272,7 @@ async function handleRegister() {
     await register(registerData)
     toast.success(t('message.registerSuccess'))
 
-    // 跳转到登录页
+    // Navigate to login page
     setTimeout(() => {
       uni.redirectTo({
         url: '/pages/login/index'
@@ -280,15 +280,15 @@ async function handleRegister() {
     }, 1000)
   }
   catch (error: any) {
-    // 处理验证码错误 - 从error.message中解析错误码
-    if (error.message.includes('请求错误[10067]')) {
+    // Handle captcha error - parse error code from error.message
+    if (error.message.includes('Request error[10067]')) {
       toast.warning(t('login.captchaError'))
     }
-    // 处理手机号码已注册错误
-    else if (error.message.includes('请求错误[10070]')) {
+    // Handle phone number already registered error
+    else if (error.message.includes('Request error[10070]')) {
       toast.warning(t('message.phoneRegistered'))
     }
-    // 注册失败重新获取验证码
+    // If registration fails, refresh captcha
     refreshCaptcha()
   }
   finally {
@@ -315,10 +315,10 @@ onMounted(async () => {
       await configStore.fetchPublicConfig()
     }
     catch (error) {
-      console.error('获取配置失败:', error)
+      console.error('Failed to get config:', error)
     }
   }
-  // 初始化国际化
+  // Initialize internationalization
   initI18n()
 })
 

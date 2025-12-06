@@ -28,9 +28,9 @@
             </div>
             <div class="divider"></div>
             
-            <!-- 功能分组容器 - 左右布局 -->
+            <!-- Feature grouping container - left-right layout -->
             <div class="feature-groups-container">
-              <!-- 功能管理分组 -->
+              <!-- Feature management group -->
               <div v-if="featureManagementFeatures.length > 0" class="feature-group">
                 <h3 class="group-title">{{ $t('featureManagement.group.featureManagement') }}</h3>
                 <div class="features-grid">
@@ -55,7 +55,7 @@
                 </div>
               </div>
               
-              <!-- 语音管理分组 -->
+              <!-- Voice management group -->
               <div v-if="voiceManagementFeatures.length > 0" class="feature-group">
                 <h3 class="group-title">{{ $t('featureManagement.group.voiceManagement') }}</h3>
                 <div class="features-grid">
@@ -113,31 +113,31 @@ export default {
       pendingChanges: false,
       featureManagementFeatures: [],
       voiceManagementFeatures: [],
-      isSaving: false // 添加保存状态锁定
+      isSaving: false // Add save state lock
     }
   },
   computed: {
-    // 所有功能列表
+    // All feature list
     filteredFeatures() {
       return [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
     },
     
-    // 判断是否所有功能都已选中
+    // Check if all features are selected
     isAllSelected() {
       const allFeatures = [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
       return allFeatures.length > 0 && allFeatures.every(feature => feature.enabled)
     }
   },
   async created() {
-    // 等待功能配置管理器初始化完成
+    // Wait for feature configuration manager initialization to complete
     try {
-      console.log('等待功能配置管理器初始化...')
+      console.log('Waiting for feature configuration manager initialization...')
       await featureManager.waitForInitialization()
-      console.log('功能配置管理器初始化完成，开始加载功能配置')
+      console.log('Feature configuration manager initialization complete, starting to load feature configuration')
       await this.loadFeatures()
       this.setupConfigChangeListener()
     } catch (error) {
-      console.error('功能配置管理器初始化等待失败:', error)
+      console.error('Feature configuration manager initialization wait failed:', error)
       await this.loadFeatures()
       this.setupConfigChangeListener()
     }
@@ -148,17 +148,17 @@ export default {
   },
   
   methods: {
-    // 根据ID列表获取功能
+    // Get features by ID list
     async getFeaturesByIds(featureIds) {
       try {
         const featureConfig = await featureManager.getAllFeatures()
-        console.log('获取到的功能配置:', JSON.stringify(featureConfig, null, 2))
-        console.log('请求的功能ID列表:', featureIds)
+        console.log('Retrieved feature configuration:', JSON.stringify(featureConfig, null, 2))
+        console.log('Requested feature ID list:', featureIds)
         
         const result = featureIds.map(id => {
           const feature = featureConfig[id]
-          console.log(`功能 ${id} 的配置:`, feature)
-          console.log(`功能 ${id} 的启用状态:`, feature?.enabled)
+          console.log(`Feature ${id} configuration:`, feature)
+          console.log(`Feature ${id} enabled status:`, feature?.enabled)
           
           return {
             id: id,
@@ -168,11 +168,11 @@ export default {
           }
         })
         
-        console.log('最终返回的功能列表:', JSON.stringify(result, null, 2))
+        console.log('Final returned feature list:', JSON.stringify(result, null, 2))
         return result
       } catch (error) {
-        console.error('获取功能配置失败:', error)
-        // 如果获取失败，返回默认配置
+        console.error('Failed to get feature configuration:', error)
+        // If retrieval fails, return default configuration
         return featureIds.map(id => ({
           id: id,
           name: this.$t(`feature.${id}.name`),
@@ -182,20 +182,20 @@ export default {
       }
     },
     
-    // 加载功能配置
+    // Load feature configuration
     async loadFeatures() {
-      // 保存当前用户的选择状态
+      // Save current user's selection state
       const currentFeatureStates = {}
       const allCurrentFeatures = [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
       allCurrentFeatures.forEach(feature => {
         currentFeatureStates[feature.id] = feature.enabled
       })
       
-      // 重新加载配置
+      // Reload configuration
       this.featureManagementFeatures = await this.getFeaturesByIds(['voiceprintRecognition', 'voiceClone', 'knowledgeBase', 'mcpAccessPoint'])
       this.voiceManagementFeatures = await this.getFeaturesByIds(['vad', 'asr'])
       
-      // 恢复用户的选择状态（如果存在）
+      // Restore user's selection state (if exists)
       const allFeatures = [...this.featureManagementFeatures, ...this.voiceManagementFeatures]
       allFeatures.forEach(feature => {
         if (currentFeatureStates.hasOwnProperty(feature.id)) {
@@ -203,9 +203,9 @@ export default {
         }
       })
     },
-    // 切换功能状态
+    // Toggle feature status
     async toggleFeature(feature) {
-      // 如果正在保存，阻止操作
+      // If saving, prevent operation
       if (this.isSaving) {
         return
       }
@@ -213,7 +213,7 @@ export default {
       feature.enabled = !feature.enabled
       this.pendingChanges = true
       
-      // 不再立即更新到配置管理器，只在保存时统一更新
+      // No longer immediately update to configuration manager, only update uniformly when saving
     },
     // 保存配置
     async handleSave() {

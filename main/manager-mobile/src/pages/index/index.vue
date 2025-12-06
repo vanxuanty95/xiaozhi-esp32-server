@@ -23,12 +23,12 @@ defineOptions({
   name: 'Home',
 })
 
-// 获取屏幕边界到安全区域距离
+// Get screen boundary to safe area distance
 let safeAreaInsets: any
 let systemInfo: any
 
 // #ifdef MP-WEIXIN
-// 微信小程序使用新的API
+// WeChat mini program uses new API
 systemInfo = uni.getWindowInfo()
 safeAreaInsets = systemInfo.safeArea
   ? {
@@ -41,82 +41,82 @@ safeAreaInsets = systemInfo.safeArea
 // #endif
 
 // #ifndef MP-WEIXIN
-// 其他平台继续使用uni API
+// Other platforms continue to use uni API
 systemInfo = uni.getSystemInfoSync()
 safeAreaInsets = systemInfo.safeAreaInsets
 // #endif
 
-// 智能体数据
+// Agent data
 const agentList = ref<Agent[]>([])
 const pagingRef = ref()
 useZPaging(pagingRef)
-// 消息组件
+// Message component
 const message = useMessage()
 
-// z-paging查询列表数据
+// z-paging query list data
 async function queryList(pageNo: number, pageSize: number) {
   try {
-    console.log('z-paging获取智能体列表')
+    console.log('z-paging getting agent list')
 
     const response = await getAgentList()
 
-    // 更新本地列表
+    // Update local list
     agentList.value = response
 
-    // 直接返回全部数据，不需要分页处理
+    // Directly return all data, no pagination processing needed
     pagingRef.value.complete(response)
   }
   catch (error) {
-    console.error('获取智能体列表失败:', error)
-    // 告知z-paging数据加载失败
+    console.error('Failed to get agent list:', error)
+    // Notify z-paging that data loading failed
     pagingRef.value.complete(false)
   }
 }
 
-// 创建智能体
+// Create agent
 async function handleCreateAgent(agentName: string) {
   try {
     await createAgent({ agentName: agentName.trim() })
-    // 创建成功后刷新列表
+    // Refresh list after successful creation
     pagingRef.value.reload()
     toast.success(`${t('home.agentName')}"${agentName}"${t('message.saveSuccess')}`)
   }
   catch (error: any) {
-    console.error('创建智能体失败:', error)
+    console.error('Failed to create agent:', error)
     const errorMessage = error?.message || t('message.saveFail')
     toast.error(errorMessage)
   }
 }
 
-// 删除智能体
+// Delete agent
 async function handleDeleteAgent(agent: Agent) {
   try {
     await deleteAgent(agent.id)
-    // 删除成功后刷新列表
+    // Refresh list after successful deletion
     pagingRef.value.reload()
     toast.success(`${t('home.agentName')}${t('message.deleteSuccess')}`)
   }
   catch (error: any) {
-    console.error('删除智能体失败:', error)
+    console.error('Failed to delete agent:', error)
     const errorMessage = error?.message || t('message.deleteFail')
     toast.error(errorMessage)
   }
 }
 
-// 进入编辑页面
+// Go to edit page
 function goToEditAgent(agent: Agent) {
-  // 传递智能体ID到编辑页面
+  // Pass agent ID to edit page
   uni.navigateTo({
     url: `/pages/agent/index?agentId=${agent.id}`,
   })
 }
 
-// 点击卡片进入编辑
+// Click card to enter edit
 function handleCardClick(agent: Agent) {
   goToEditAgent(agent)
 }
 
-// 打开创建对话框
+// Open create dialog
 function openCreateDialog() {
   message
     .prompt({
@@ -135,11 +135,11 @@ function openCreateDialog() {
       }
     })
     .catch(() => {
-      // 用户取消操作
+      // User cancelled operation
     })
 }
 
-// 格式化时间
+// Format time
 function formatTime(timeStr: string) {
   const date = new Date(timeStr)
   const now = new Date()
@@ -154,15 +154,15 @@ function formatTime(timeStr: string) {
   return `${Math.floor(diff / 86400000)}${t('home.daysAgo')}`
 }
 
-// 页面显示时刷新列表
+// Refresh list when page is shown
 onShow(() => {
-  console.log('首页 onShow，刷新智能体列表')
+  console.log('Home page onShow, refreshing agent list')
   if (pagingRef.value) {
     pagingRef.value.reload()
   }
 })
 
-// 在组件挂载后设置导航栏标题
+// Set navigation bar title after component is mounted
 import { onMounted } from 'vue'
 onMounted(() => {
   uni.setNavigationBarTitle({

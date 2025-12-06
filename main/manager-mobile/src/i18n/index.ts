@@ -2,14 +2,14 @@ import { ref } from 'vue'
 import { useLangStore } from '@/store/lang'
 import type { Language } from '@/store/lang'
 
-// 导入各个语言的翻译文件
+// Import translation files for each language
 import zh_CN from './zh_CN'
 import en from './en'
 import zh_TW from './zh_TW'
 import de from './de'
 import vi from './vi'
 
-// 语言包映射
+// Language pack mapping
 const messages = {
   zh_CN: zh_CN,
   en,
@@ -18,31 +18,31 @@ const messages = {
   vi,
 }
 
-// 当前使用的语言
+// Currently used language
 const currentLang = ref<Language>('zh_CN')
 
-// 初始化语言
+// Initialize language
 export function initI18n() {
   const langStore = useLangStore()
   currentLang.value = langStore.currentLang
 }
 
-// 切换语言
+// Change language
 export function changeLanguage(lang: Language) {
   currentLang.value = lang
   const langStore = useLangStore()
   langStore.changeLang(lang)
 }
 
-// 获取翻译文本
+// Get translation text
 export function t(key: string, params?: Record<string, string | number>): string {
   const langMessages = messages[currentLang.value]
 
-  // 直接查找扁平键名
+  // Directly search for flat key name
   if (langMessages && typeof langMessages === 'object' && key in langMessages) {
     let value = langMessages[key]
     if (typeof value === 'string') {
-      // 处理参数替换
+      // Handle parameter replacement
       if (params) {
         let result = value
         Object.entries(params).forEach(([paramKey, paramValue]) => {
@@ -56,20 +56,20 @@ export function t(key: string, params?: Record<string, string | number>): string
     return key
   }
 
-  return key // 如果找不到对应的翻译，返回key本身
+  return key // If corresponding translation not found, return key itself
 }
 
-// 获取当前语言
+// Get current language
 export function getCurrentLanguage(): Language {
   return currentLang.value
 }
 
-// 获取支持的语言列表
+// Get supported language list
 export function getSupportedLanguages(): { code: Language, name: string }[] {
   return [
-    { code: 'zh_CN', name: '简体中文' },
+    { code: 'zh_CN', name: 'Simplified Chinese' },
     { code: 'en', name: 'English' },
-    { code: 'zh_TW', name: '繁體中文' },
+    { code: 'zh_TW', name: 'Traditional Chinese' },
     { code: 'de', name: 'Deutsch' },
     { code: 'vi', name: 'Tiếng Việt' },
   ]

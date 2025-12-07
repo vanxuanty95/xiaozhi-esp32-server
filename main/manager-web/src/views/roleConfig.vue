@@ -797,153 +797,153 @@ export default {
       this.playVoicePreview(voiceId);
     },
 
-    // 播放音色预览
+    // Play voice preview
     playVoicePreview(voiceId = null) {
-      // 如果传入了voiceId，则使用传入的，否则使用当前选中的
+      // If voiceId is passed in, use it, otherwise use currently selected
       const targetVoiceId = voiceId || this.form.ttsVoiceId;
 
       if (!targetVoiceId) {
-        this.$message.warning("请先选择一个音色");
+        this.$message.warning("Please select a voice first");
         return;
       }
 
-      // 停止当前正在播放的音频
+      // Stop currently playing audio
       if (this.currentAudio) {
         this.currentAudio.pause();
         this.currentAudio = null;
       }
 
-      // 重置播放状态
+      // Reset playback state
       this.isPaused = false;
       this.currentPlayingVoiceId = targetVoiceId;
 
       try {
-        // 从保存的音色详情中获取音频URL
+        // Get audio URL from saved voice details
         const voiceDetail = this.voiceDetails[targetVoiceId];
 
-        // 添加调试信息
-        console.log("当前选择的音色ID:", targetVoiceId);
-        console.log("音色详情:", voiceDetail);
+        // Add debug information
+        console.log("Currently selected voice ID:", targetVoiceId);
+        console.log("Voice details:", voiceDetail);
 
-        // 尝试多种可能的音频属性名
+        // Try multiple possible audio attribute names
         let audioUrl = null;
         let isCloneAudio = false;
 
         if (voiceDetail) {
-          // 首先检查是否是克隆音频（通过ID格式判断，非TTS开头的ID）
+          // First check if it's a clone audio (judge by ID format, IDs not starting with TTS)
           isCloneAudio =
             voiceDetail.hasCloneAudio ||
             (voiceDetail.id && !voiceDetail.id.startsWith("TTS"));
           console.log(
-            "克隆音频判断结果:",
+            "Clone audio judgment result:",
             isCloneAudio,
-            "训练状态:",
+            "Training status:",
             voiceDetail.train_status
           );
 
-          // 获取音频URL
+          // Get audio URL
           if (isCloneAudio && voiceDetail.id) {
-            // 对于克隆音频，使用后端提供的正确接口
-            // 注意：这里需要通过两步获取音频URL
-            // 1. 首先获取音频下载ID
-            // 2. 然后使用这个ID构建播放URL
-            // 由于异步操作，我们需要先请求getAudioId
-            console.log("检测到克隆音频，准备获取音频URL:", voiceDetail.id);
+            // For clone audio, use the correct interface provided by backend
+            // Note: Need to get audio URL in two steps here
+            // 1. First get audio download ID
+            // 2. Then use this ID to build playback URL
+            // Due to async operations, we need to request getAudioId first
+            console.log("Detected clone audio, preparing to get audio URL:", voiceDetail.id);
 
-            // 创建一个Promise来处理异步获取音频URL的操作
+            // Create a Promise to handle async audio URL retrieval
             const getCloneAudioUrl = () => {
               return new Promise((resolve) => {
-                // 首先调用getAudioId接口获取临时UUID
+                // First call getAudioId interface to get temporary UUID
                 RequestService.sendRequest()
                   .url(`${getServiceUrl()}/voiceClone/audio/${voiceDetail.id}`)
                   .method("POST")
                   .success((res) => {
                     if (res.data.code === 0 && res.data.data) {
-                      // 处理返回的数据格式，在res.data基础上再套一层.data
+                      // Process returned data format, wrap another layer of .data on top of res.data
                       const audioId = res.data.data;
-                      console.log("获取到的音频ID:", audioId);
-                      // 使用返回的UUID构建播放URL
+                      console.log("Retrieved audio ID:", audioId);
+                      // Use returned UUID to build playback URL
                       const playUrl = `${getServiceUrl()}/voiceClone/play/${audioId}`;
-                      console.log("构建克隆音频播放URL:", playUrl);
+                      console.log("Built clone audio playback URL:", playUrl);
                       resolve(playUrl);
                     } else {
-                      console.error("获取音频ID失败:", res.msg);
+                      console.error("Failed to get audio ID:", res.msg);
                       resolve(null);
                     }
                   })
                   .networkFail((err) => {
-                    console.error("请求音频ID接口失败:", err);
+                    console.error("Failed to request audio ID interface:", err);
                     resolve(null);
                   })
                   .send();
               });
             };
 
-            // 设置播放状态
+            // Set playback state
             this.playingVoice = true;
-            // 创建Audio实例
+            // Create Audio instance
             this.currentAudio = new Audio();
-            // 设置音量
+            // Set volume
             this.currentAudio.volume = 1.0;
 
-            // 设置超时，防止加载过长时间
+            // Set timeout to prevent loading for too long
             const timeoutId = setTimeout(() => {
               if (this.currentAudio && this.playingVoice) {
-                this.$message.warning("音频加载时间较长，请稍后重试");
+                this.$message.warning("Audio loading time is long, please retry later");
                 this.playingVoice = false;
               }
-            }, 10000); // 10秒超时
+            }, 10000); // 10 second timeout
 
-            // 监听播放错误
+            // Listen for playback errors
             this.currentAudio.onerror = () => {
               clearTimeout(timeoutId);
-              console.error("克隆音频播放错误");
-              this.$message.warning("克隆音频播放失败");
+              console.error("Clone audio playback error");
+              this.$message.warning("Clone audio playback failed");
               this.playingVoice = false;
             };
 
-            // 监听播放开始，清除超时
+            // Listen for playback start, clear timeout
             this.currentAudio.onplay = () => {
               clearTimeout(timeoutId);
             };
 
-            // 监听播放结束
+            // Listen for playback end
             this.currentAudio.onended = () => {
               this.playingVoice = false;
             };
 
-            // 处理异步获取URL并播放
+            // Handle async URL retrieval and playback
             getCloneAudioUrl().then((url) => {
               if (url) {
-                // 设置音频URL并播放
+                // Set audio URL and play
                 this.currentAudio.src = url;
                 this.currentAudio.play().catch((error) => {
                   clearTimeout(timeoutId);
-                  console.error("播放克隆音频失败:", error);
-                  this.$message.warning("无法播放克隆音频");
+                  console.error("Failed to play clone audio:", error);
+                  this.$message.warning("Unable to play clone audio");
                   this.playingVoice = false;
                 });
               } else {
                 clearTimeout(timeoutId);
-                this.$message.warning("获取克隆音频失败");
+                this.$message.warning("Failed to get clone audio");
                 this.playingVoice = false;
               }
             });
 
-            // 返回，避免继续执行下面的普通音频播放逻辑
+            // Return to avoid continuing with normal audio playback logic below
             return;
           } else {
-            // 对于普通音频，尝试各种可能的URL字段
+            // For normal audio, try various possible URL fields
             audioUrl =
               voiceDetail.voiceDemo ||
               voiceDetail.demoUrl ||
               voiceDetail.audioUrl ||
               voiceDetail.voice_demo ||
               voiceDetail.sample_voice ||
-              voiceDetail.cloneAudioUrl; // 克隆音频URL
+              voiceDetail.cloneAudioUrl; // Clone audio URL
           }
 
-          // 如果没有找到，尝试检查是否有URL格式的字段
+          // If not found, try checking if there are URL format fields
           if (!audioUrl) {
             for (const key in voiceDetail) {
               const value = voiceDetail[key];
@@ -956,7 +956,7 @@ export default {
                   value.endsWith(".ogg"))
               ) {
                 audioUrl = value;
-                console.log(`发现可能的音频URL在字段 '${key}':`, audioUrl);
+                console.log(`Found possible audio URL in field '${key}':`, audioUrl);
                 break;
               }
             }
@@ -964,60 +964,60 @@ export default {
         }
 
         if (!audioUrl) {
-          // 如果没有音频URL，显示友好的提示
-          this.$message.warning("该音色暂无可预览的音频");
+          // If no audio URL, show friendly message
+          this.$message.warning("This voice has no preview audio available");
           return;
         }
 
-        // 非克隆音频的处理逻辑
+        // Non-clone audio processing logic
         if (!isCloneAudio) {
-          // 设置播放状态
+          // Set playback state
           this.playingVoice = true;
 
-          // 创建并播放音频
+          // Create and play audio
           this.currentAudio = new Audio();
           this.currentAudio.src = audioUrl;
 
-          // 设置音量
+          // Set volume
           this.currentAudio.volume = 1.0;
 
-          // 设置超时，防止加载过长时间
+          // Set timeout to prevent loading for too long
           const timeoutId = setTimeout(() => {
             if (this.currentAudio && this.playingVoice) {
-              this.$message.warning("音频加载时间较长，请稍后重试");
+              this.$message.warning("Audio loading time is long, please retry later");
               this.playingVoice = false;
             }
-          }, 10000); // 10秒超时
+          }, 10000); // 10 second timeout
 
-          // 监听播放错误
+          // Listen for playback errors
           this.currentAudio.onerror = () => {
             clearTimeout(timeoutId);
-            console.error("音频播放错误");
-            this.$message.warning("音频播放失败");
+            console.error("Audio playback error");
+            this.$message.warning("Audio playback failed");
             this.playingVoice = false;
           };
 
-          // 监听播放开始，清除超时
+          // Listen for playback start, clear timeout
           this.currentAudio.onplay = () => {
             clearTimeout(timeoutId);
           };
 
-          // 监听播放结束
+          // Listen for playback end
           this.currentAudio.onended = () => {
             this.playingVoice = false;
           };
 
-          // 开始播放音频
+          // Start playing audio
           this.currentAudio.play().catch((error) => {
             clearTimeout(timeoutId);
-            console.error("播放失败:", error);
-            this.$message.warning("无法播放音频");
+            console.error("Playback failed:", error);
+            this.$message.warning("Unable to play audio");
             this.playingVoice = false;
           });
         }
       } catch (error) {
-        console.error("播放音频过程出错:", error);
-        this.$message.error("播放音频过程出错");
+        console.error("Error during audio playback:", error);
+        this.$message.error("Error during audio playback");
         this.playingVoice = false;
       }
     },
@@ -1026,17 +1026,17 @@ export default {
         this.form.chatHistoryConf = 0;
       }
     },
-    // 加载功能状态
+    // Load feature status
     async loadFeatureStatus() {
       try {
-        // 确保featureManager已初始化完成
+        // Ensure featureManager initialization is complete
         await featureManager.waitForInitialization();
         const config = featureManager.getConfig();
         this.featureStatus.voiceprintRecognition = config.voiceprintRecognition || false;
         this.featureStatus.vad = config.vad || false;
         this.featureStatus.asr = config.asr || false;
       } catch (error) {
-        console.error("加载功能状态失败:", error);
+        console.error("Failed to load feature status:", error);
       }
     },
   },
@@ -1069,7 +1069,7 @@ export default {
     }
     this.fetchModelOptions();
     this.fetchTemplates();
-    // 加载功能状态，确保featureManager已初始化
+    // Load feature status, ensure featureManager is initialized
     await this.loadFeatureStatus();
   },
 };

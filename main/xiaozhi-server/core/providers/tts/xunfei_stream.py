@@ -393,7 +393,7 @@ class TTSProvider(TTSProviderBase):
                     )
                     break
 
-            # 链接不可复用
+            # Connection cannot be reused
             if self.ws:
                 try:
                     await self.ws.close()

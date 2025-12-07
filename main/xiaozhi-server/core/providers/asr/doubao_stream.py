@@ -24,9 +24,9 @@ class ASRProvider(ASRProviderBase):
         self.decoder = opuslib_next.Decoder(16000, 1)
         self.asr_ws = None
         self.forward_task = None
-        self.is_processing = False  # 添加处理状态标志
+        self.is_processing = False  # Add processing status flag
 
-        # 配置参数
+        # Configuration parameters
         self.appid = str(config.get("appid"))
         self.cluster = config.get("cluster")
         self.access_token = config.get("access_token")
@@ -35,7 +35,7 @@ class ASRProvider(ASRProviderBase):
         self.output_dir = config.get("output_dir", "tmp/")
         self.delete_audio_file = delete_audio_file
 
-        # 火山引擎ASR配置
+        # Volcano Engine ASR configuration
         self.ws_url = "wss://openspeech.bytedance.com/api/v3/sauc/bigmodel"
         self.uid = config.get("uid", "streaming_asr_service")
         self.workflow = config.get(
@@ -58,23 +58,23 @@ class ASRProvider(ASRProviderBase):
         conn.asr_audio.append(audio)
         conn.asr_audio = conn.asr_audio[-10:]
         
-        # 存储音频数据
+        # Store audio data
         if not hasattr(conn, 'asr_audio_for_voiceprint'):
             conn.asr_audio_for_voiceprint = []
         conn.asr_audio_for_voiceprint.append(audio)
         
-        # 当没有音频数据时处理完整语音片段
+        # Process complete speech segment when there's no audio data
         if not audio and len(conn.asr_audio_for_voiceprint) > 0:
             await self.handle_voice_stop(conn, conn.asr_audio_for_voiceprint)
             conn.asr_audio_for_voiceprint = []
 
-        # 如果本次有声音，且之前没有建立连接
+        # If there's voice this time, and connection hasn't been established before
         if audio_have_voice and self.asr_ws is None and not self.is_processing:
             try:
                 self.is_processing = True
-                # 建立新的WebSocket连接
+                # Establish new WebSocket connection
                 headers = self.token_auth() if self.auth_method == "token" else None
-                logger.bind(tag=TAG).info(f"正在连接ASR服务，headers: {headers}")
+                logger.bind(tag=TAG).info(f"Connecting to ASR service, headers: {headers}")
 
                 self.asr_ws = await websockets.connect(
                     self.ws_url,
@@ -85,7 +85,7 @@ class ASRProvider(ASRProviderBase):
                     close_timeout=10,
                 )
 
-                # 发送初始化请求
+                # Send initialization request
                 request_params = self.construct_request(str(uuid.uuid4()))
                 try:
                     payload_bytes = str.encode(json.dumps(request_params))
@@ -94,7 +94,7 @@ class ASRProvider(ASRProviderBase):
                     full_client_request.extend((len(payload_bytes)).to_bytes(4, "big"))
                     full_client_request.extend(payload_bytes)
 
-                    logger.bind(tag=TAG).info(f"发送初始化请求: {request_params}")
+                    logger.bind(tag=TAG).info(f"Sending initialization request: {request_params}")
                     await self.asr_ws.send(full_client_request)
 
                     # 等待初始化响应

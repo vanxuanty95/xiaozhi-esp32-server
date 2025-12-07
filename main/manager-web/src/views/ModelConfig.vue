@@ -564,9 +564,9 @@ export default {
       this.loadData();
     },
 
-    // 获取模型配置列表
+    // Get model configuration list
     loadData() {
-      this.loading = true; // 开始加载
+      this.loading = true; // Start loading
       const params = {
         modelType: this.activeTab,
         modelName: this.search,
@@ -575,7 +575,7 @@ export default {
       };
 
       Api.model.getModelList(params, ({ data }) => {
-        this.loading = false; // 结束加载
+        this.loading = false; // End loading
         if (data.code === 0) {
           this.modelList = data.data.list;
           this.total = data.data.total;
@@ -584,7 +584,7 @@ export default {
         }
       });
     },
-    // 处理启用/禁用状态变更
+    // Handle enable/disable status change
     handleStatusChange(model) {
       const newStatus = model.isEnabled ? 1 : 0;
       const originalStatus = model.isEnabled;
@@ -598,12 +598,12 @@ export default {
               ? this.$t("modelConfig.enableSuccess")
               : this.$t("modelConfig.disableSuccess")
           );
-          // 保持新状态
+          // Keep new status
           model.isEnabled = newStatus;
-          // 刷新表格数据
+          // Refresh table data
           this.loadData();
         } else {
-          // 操作失败时恢复原状态
+          // Restore original status when operation fails
           model.isEnabled = originalStatus;
           this.$message.error(data.msg || this.$t("modelConfig.operationFailed"));
         }
@@ -1050,7 +1050,7 @@ export default {
     }
   }
 
-  /* 数字按钮样式 */
+  /* Number button styles */
   .pagination-btn:not(:first-child):not(:nth-child(2)):not(:nth-child(3)):not(:nth-last-child(2)) {
     min-width: 28px;
     height: 32px;
